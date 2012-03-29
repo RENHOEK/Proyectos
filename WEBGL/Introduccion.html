@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebGL</title>
+    <meta  charset=ISO-8859-1">
+    <script  src="src/funciones.js"></script>
+    <script  src="src/glMatrix-0.9.5.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/hoja.css">
+    <!-- Codigo del Fragment Shader -->
+  <script id="shader-fs" type="x-shader/x-fragment">
+    #ifdef GL_ES
+         precision highp float;
+    #endif
+    void main(void)
+    {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
+  </script>
+
+  <!-- Codigo del Vertex Shader -->
+  <script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    uniform mat4 uMVMatriz;
+    uniform mat4 uPMatriz;
+
+    void main(void)
+    {
+        gl_Position= uPMatriz * uMVMatriz *
+                      vec4(aVertexPosition, 1.0);
+    }
+   </script>
+
+  <script type="text/javascript">
+    var webgl;
+    var at = new atributosPipeline(mat4.create(),mat4.create());
+    var cuadro = new objeto3D([ 1.0,  1.0,  0.0,
+                               -1.0,  1.0,  0.0,
+                               -1.0, -1.0,  0.0,
+                                1.0, -1.0,  0.0]);
+    //Funcion que inicia los shaders
+    function initShaders()
+    {
+        var fragmentShader = getShader(webgl, "shader-fs");
+        var vertexShader = getShader(webgl, "shader-vs");
+
+        at.ShaderProgram = webgl.createProgram();
+        webgl.attachShader(at.ShaderProgram, vertexShader);
+        webgl.attachShader(at.ShaderProgram, fragmentShader);
+        webgl.linkProgram(at.ShaderProgram);
+
+        if (!webgl.getProgramParameter(at.ShaderProgram, webgl.LINK_STATUS))
+                alert("No pueden iniciarse los shaders");
+
+        webgl.useProgram(at.ShaderProgram);
+
+        at.ShaderProgram.vertexPositionAttribute =
+              webgl.getAttribLocation(at.ShaderProgram, "aVertexPosition");
+
+        webgl.enableVertexAttribArray(
+                at.ShaderProgram.vertexPositionAttribute);
+
+        at.ShaderProgram.pMatrizUniform =
+             webgl.getUniformLocation(at.ShaderProgram, "uPMatriz");
+
+        at.ShaderProgram.mvMatrizUniform =
+             webgl.getUniformLocation(at.ShaderProgram, "uMVMatriz");
+    }
+    //Funcion que inicia los buffers del objeto en la Tarjeta Grafica
+    function initBuffers()
+    {
+        cuadro.bufferVertices=webgl.createBuffer();
+        webgl.bindBuffer(webgl.ARRAY_BUFFER, cuadro.bufferVertices);
+        webgl.bufferData(webgl.ARRAY_BUFFER,
+                         new Float32Array(cuadro.vertices),
+                         webgl.STATIC_DRAW);
+    }
+    //Funcion que dibuja sobre el contexto WebGL
+    function dibujarEscena()
+    {   //definimos el viewport
+        webgl.viewport(0, 0, webgl.viewportWidth, webgl.viewportHeight);
+        webgl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
+        mat4.perspective(45, webgl.viewportWidth / webgl.viewportHeight,
+                          0.1, 100.0, at.pMatriz);
+        mat4.identity(at.mvMatriz);
+        mat4.translate(at.mvMatriz, [0.0, 0.0, -7.0]);
+        webgl.bindBuffer(webgl.ARRAY_BUFFER, cuadro.bufferVertices);
+        webgl.vertexAttribPointer(at.ShaderProgram.vertexPositionAttribute,
+                                  3, webgl.FLOAT, false, 0, 0);
+        setMatrizUniforms(webgl, at);
+        webgl.drawArrays(webgl.TRIANGLE_FAN, 0, 4);
+        webgl.flush();
+    }
+
+    //Funcion que llama el navegador cuando la pagina esta cargada
+    function webGLStart()
+    {
+        var canvas = document.getElementById("canvas");
+        webgl =  contextoWebGL(canvas);
+        if(webgl==null)
+            alert("No puede iniciarse WebGL en este navegador");
+        else
+        {
+            initShaders();
+            initBuffers();
+            webgl.clearColor(1.0, 1.0, 1.0, 1.0);
+            webgl.enable(webgl.DEPTH_TEST);
+            dibujarEscena();
+        }
+    }
+  </script>
+  </head>
+  <body onload="webGLStart();">
+      <div >
+          <h1>WebGL</h1>
+          <h3>Cuadro</h3>
+          <canvas id="canvas"width="500" height="500"></canvas>
+      </div>
+  </body>
+</html>

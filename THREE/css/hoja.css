@@ -1,0 +1,10 @@
+body{
+   font-family: Trebuchet MS,Helvetica;
+}
+div{
+  text-align: center;
+}
+canvas{
+  border-width: 1px;
+  border-style: solid;border-color: black;
+}

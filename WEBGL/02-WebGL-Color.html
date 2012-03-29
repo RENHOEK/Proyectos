@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+      <head>
+            <title>WebGL Color</title>
+            <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+            <link rel="stylesheet" href="css/jquery-ui-1.8.17.custom.css">
+            <link rel="stylesheet" href="css/hoja.css">
+            <script src="src/jquery-1.7.1.js"></script>
+            <script src="src/external/jquery.bgiframe-2.1.2.js"></script>
+            <script src="src/ui/jquery.ui.core.js"></script>
+            <script src="src/ui/jquery.ui.widget.js"></script>
+            <script src="src/ui/jquery.ui.mouse.js"></script>
+            <script src="src/ui/jquery.ui.button.js"></script>
+            <script src="src/ui/jquery.ui.draggable.js"></script>
+            <script src="src/ui/jquery.ui.position.js"></script>
+            <script src="src/ui/jquery.ui.resizable.js"></script>
+            <script src="src/ui/jquery.ui.dialog.js"></script>
+            <link rel="stylesheet" href="css/demos.css">
+            <script type="text/javascript" src="src/funciones.js"></script>
+            <script type="text/javascript" src="src/glMatrix-0.9.5.min.js"></script>
+
+            <script id="shader-fs" type="x-shader/x-fragment">
+                    #ifdef GL_ES
+                         precision highp float;
+                    #endif
+                    varying vec4 vColor;
+                    void main(void)
+                    {
+                        gl_FragColor = vColor;
+                    }
+            </script>
+
+            <script id="shader-vs" type="x-shader/x-vertex">
+                    attribute vec3 aVertexPosition;
+                    attribute vec4 aVertexColor;
+                    uniform mat4 uMVMatrix;
+                    uniform mat4 uPMatrix;
+                    varying vec4 vColor;
+                    void main(void)
+                    {
+                        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+                        vColor = aVertexColor;
+                        gl_PointSize=(10.0);
+                    }
+            </script>
+
+            <script type="text/javascript">
+                    var webgl;
+
+                    var at = new atributosPipeline(mat4.create(),mat4.create());
+                    var triangulo = new objeto3D([ 0.0,  1.0,  0.0,
+                                                  -1.0, -1.0,  1.0,
+                                                   1.0, -1.0,  1.0]);
+
+                    //Funcion que inicia los shaders
+                    function initShaders()
+                    {
+                        var fragmentShader = getShader(webgl, "shader-fs");
+                        var vertexShader = getShader(webgl, "shader-vs");
+
+                        at.ShaderProgram = webgl.createProgram();
+                        webgl.attachShader(at.ShaderProgram, vertexShader);
+                        webgl.attachShader(at.ShaderProgram, fragmentShader);
+                        webgl.linkProgram(at.ShaderProgram);
+
+                        if (!webgl.getProgramParameter(at.ShaderProgram, webgl.LINK_STATUS))
+                                alert("No pueden iniciarse los shaders");
+
+                        webgl.useProgram(at.ShaderProgram);
+                        at.ShaderProgram.vertexPositionAttribute = webgl.getAttribLocation(at.ShaderProgram, "aVertexPosition");
+                        webgl.enableVertexAttribArray(at.ShaderProgram.vertexPositionAttribute);
+                        at.ShaderProgram.vertexColorAttribute = webgl.getAttribLocation(at.ShaderProgram, "aVertexColor");
+                        webgl.enableVertexAttribArray(at.ShaderProgram.vertexColorAttribute);
+                        at.ShaderProgram.pMatrizUniform = webgl.getUniformLocation(at.ShaderProgram, "uPMatrix");
+                        at.ShaderProgram.mvMatrizUniform = webgl.getUniformLocation(at.ShaderProgram, "uMVMatrix");
+                    }
+                    //Funcion que inicia los buffers del objeto en la Tarjeta Grafica
+                    function initBuffers()
+                    {
+                        triangulo.bufferVertices=webgl.createBuffer();
+                        webgl.bindBuffer(webgl.ARRAY_BUFFER, triangulo.bufferVertices);
+                        webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(triangulo.vertices), webgl.STATIC_DRAW);
+                        console.log(document.getElementById("rrojo").value);
+                        triangulo.vectoresColor=[parseFloat(document.getElementById("rrojo").value), parseFloat(document.getElementById("rverde").value), parseFloat(document.getElementById("razul").value), 1.0,
+                                             parseFloat(document.getElementById("rrojo").value), parseFloat(document.getElementById("rverde").value), parseFloat(document.getElementById("razul").value), 1.0,
+                                            parseFloat(document.getElementById("rrojo").value), parseFloat(document.getElementById("rverde").value), parseFloat(document.getElementById("razul").value), 1.0];
+                        triangulo.bufferColor = webgl.createBuffer();
+                        webgl.bindBuffer(webgl.ARRAY_BUFFER, triangulo.bufferColor);
+                        webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(triangulo.vectoresColor), webgl.STATIC_DRAW)
+                    }
+                    //Funcion que dibuja sobre el contexto WebGL
+                    function dibujarEscena()
+                    {   //definimos el viweport
+                        webgl.viewport(0, 0, webgl.viewportWidth, webgl.viewportHeight);
+                        webgl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
+                        mat4.perspective(45, webgl.viewportWidth / webgl.viewportHeight, 0.1, 100.0, at.pMatriz);
+                        mat4.identity(at.mvMatriz);
+                        mat4.translate(at.mvMatriz, [0.0, 0.0, -7.0]);
+                        webgl.bindBuffer(webgl.ARRAY_BUFFER, triangulo.bufferVertices);
+                        webgl.vertexAttribPointer(at.ShaderProgram.vertexPositionAttribute, 3, webgl.FLOAT, false, 0, 0);
+
+                        webgl.bindBuffer(webgl.ARRAY_BUFFER, triangulo.bufferColor);
+                        webgl.vertexAttribPointer(at.ShaderProgram.vertexColorAttribute, 4, webgl.FLOAT, false, 0, 0);
+
+                        setMatrizUniforms(webgl, at);
+                        webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, triangulo.noElementos);
+                        webgl.flush();
+                    }
+
+                    //Funcion que llama el navegador cuando la pagina esta completamente cargada
+                    function webGLStart()
+                    {
+                        var canvas = document.getElementById("canvas");
+                        webgl =  contextoWebGL(canvas);
+                        if(webgl==null)
+                        {
+                            alert("No puede iniciarse WebGL en este navegador");
+                        }
+                        else
+                        {
+                            initShaders();
+                            initBuffers();
+                            webgl.clearColor(1.0, 1.0, 1.0, 1.0);
+                            webgl.enable(webgl.DEPTH_TEST);
+
+                            dibujarEscena();
+                        }
+                    }
+                    function showValue(newValue,id)
+                   {
+                        switch (id)
+                        {
+                          case 1:
+                             document.getElementById("rrojo").value=Math.round((newValue)*1000)/1000;
+                          break;
+                          case 2:
+                             document.getElementById("rverde").value=Math.round((newValue)*1000)/1000;
+                          break;
+                          case 3:
+                             document.getElementById("razul").value=Math.round((newValue)*1000)/1000;
+                          break;
+                        }
+                      initBuffers();
+                      dibujarEscena();
+                   }
+            </script>
+        </head>
+        <body onload="webGLStart();">
+            <div class="demo"  style="text-align:center">
+                <h1>WebGL</h1>
+                <h3>Color</h3>
+                <canvas id="canvas" style="border-width: 1px;border-style: solid;border-color: black;" width="350" height="350"></canvas>
+            </div>
+         <table>
+                 <tr>
+                   <td> Rojo:<input type="text" id="rrojo"  value="0.5" size="5" /> </td>
+                   <td><input  type="range"  min="0"  max="1.0"  step="0.01"  value="0.5" onchange="showValue(this.value,1)"/></td>
+                 </tr>
+                 <tr>
+                   <td>Verde:<input type="text" id="rverde"  value="0.5" size="3"/> </td>
+                   <td><input  type="range"  min="0"  max="1.0"  step="0.01"  value="0.5" onchange="showValue(this.value,2)"/></td>
+                 </tr>
+                 <tr>
+                   <td>Azul:<input type="text" id="razul"  value="0.5" size="3"/></td>
+                   <td><input  type="range"  min="0"  max="1.0"  step="0.01"  value="0.5" onchange="showValue(this.value,3)"/></td>
+                 </tr>
+         </table>
+         <div id="dialogmessage"></div>
+        </body>
+</html>
