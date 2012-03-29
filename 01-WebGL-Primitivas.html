@@ -5,6 +5,7 @@
             <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
             <script type="text/javascript" src="src/funciones.js"></script>
             <script type="text/javascript" src="src/glMatrix-0.9.5.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="css/hoja.css">
             <script id="shader-fs" type="x-shader/x-fragment">
                     #ifdef GL_ES
                          precision highp float;
@@ -23,13 +24,12 @@
                     void main(void)
                     {
                         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-                        gl_PointSize = 5.0;
+                        gl_PointSize = 9.0;
                     }
             </script>
 
             <script type="text/javascript">
                     var webgl;
-                    var te=90;
                     var at = new atributosPipeline(mat4.create(),mat4.create());
                     var cuadro = new objeto3D([ 1.0,  1.0,  0.0,
                                                -1.0,  1.0,  0.0,
@@ -67,7 +67,7 @@
                     {   //definimos el viweport
                         webgl.viewport(0, 0, webgl.viewportWidth, webgl.viewportHeight);
                         webgl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
-                        mat4.perspective(te, webgl.viewportWidth / webgl.viewportHeight, 0.1, 100.0, at.pMatriz);
+                        mat4.perspective(90, webgl.viewportWidth / webgl.viewportHeight, 0.1, 100.0, at.pMatriz);
                         mat4.identity(at.mvMatriz);
                         mat4.translate(at.mvMatriz, [-4.0, 0.0, -7.0]);
                         webgl.bindBuffer(webgl.ARRAY_BUFFER, cuadro.bufferVertices);
@@ -131,14 +131,13 @@
                          console.log(te);
                          dibujarEscena();
                     }
-
             </script>
         </head>
         <body onload="webGLStart();">
-            <div style="text-align:center">
+            <div >
                 <h1>WebGL</h1>
                 <h3>Primitivas</h3>
-                <canvas id="canvas" style="display:inline;border-width: 1px;border-style: solid;border-color: black;" width="500" height="500"></canvas>
+                <canvas id="canvas"  width="500" height="500"></canvas>
             </div>
         </body>
 </html>

@@ -9,37 +9,25 @@ window.requestAnimFrame = (function() {
          };
 })();
 
-//DEfine un alert con con Jquery
-window.alert = function(message) {
-                	$('#dialogmessage').text(message).dialog({
-                		modal:true,
-                		title:'Error',
-                		buttons: {
-                			Aceptar:function(){
-                				$(this).dialog('close');
-                			}
-                		}
-                	});
-                };
 /*
     Funcion que obtiene el contexto WebGL
 */
 function contextoWebGL(canvas)
 {
-    var cWebgl;
-    try
-    {
-    	cWebgl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    	cWebgl.viewportWidth = canvas.width;
-    	cWebgl.viewportHeight = canvas.height;
-    	console.log("Se consigio el contexto WebGL");
-        return cWebgl;
-    }
-    catch (e)
-    {
-    	console.log("No puede iniciarse WebGL en este navegador");
-    	return null;
-    }
+ var cWebgl;
+ try
+ {
+   cWebgl = canvas.getContext("webgl")||canvas.getContext("experimental-webgl");
+   cWebgl.viewportWidth = canvas.width;
+   cWebgl.viewportHeight = canvas.height;
+   console.log("Se consigio el contexto WebGL");
+   return cWebgl;
+ }
+ catch (e)
+ {
+   console.log("No puede iniciarse WebGL en este navegador");
+   return null;
+ }
 }
 
 
@@ -51,7 +39,7 @@ var atributosPipeline = function(mv, p)
    this.mvMatriz = mv;//Contiene la matriz Modelo-Vista
    this.pMatriz = p;//Contiene la matriz de Proyeccion
    this.ShaderProgram = null;//Contiene el Programa Shader
-   this.mvPilaMatriz = [];
+   this.mvPilaMatriz = [];  //Contiene la pila de matrices
    this.toString = function()//Imprime un log de los atributos del objeto
    {
        console.log("\nAtributos Pipeline");
@@ -78,7 +66,7 @@ var atributosPipeline = function(mv, p)
 
 
 /*
-    Objeto que contendra los vertices, buffers, tamaÃ±o Matriz
+    Objeto que contendra los vertices, buffers, tamaño Matriz
     Numero de elementos de la matriz
 */
 var objeto3D = function(vertices)
@@ -184,7 +172,7 @@ function getShader(webgl, id)
 	    }
         else
         {
-            console.log("Se obtuvo el Shader");
+            console.log("Se consiguio el Shader "+ codigoShader.type);
             return shader;
         }
     }
