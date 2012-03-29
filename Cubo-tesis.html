@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+   <head>
+      <title>Primitivas con GLGE</title>
+        <meta charset=ISO-8859-1">
+        <script src="src/glge-compiled.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/hoja.css">
+   </head>
+   <body >
+     <div id="container">
+        <h1>GLGE</h1>
+        <canvas id="canvas"width="900" height="500">
+        </canvas>
+        <p>Cubo Usando el framework GLGE</p>
+     </div>
+     <script type="text/javascript">
+        var canvas = document.getElementById( 'canvas' )
+        var renderer = new GLGE.Renderer( canvas );
+        var XMLdoc = new GLGE.Document();
+
+        XMLdoc.onLoad = function()
+        {
+            var scene = XMLdoc.getElement( "mainscene" );
+        	renderer.setScene( scene );
+        	renderer.render();
+        	setInterval(function()
+            {
+              renderer.render();
+            }, 15);
+        }
+        XMLdoc.load("Cubo.xml");
+
+     </script>
+   </body>
+</html>
